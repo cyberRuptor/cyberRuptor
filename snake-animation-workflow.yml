@@ -1,0 +1,37 @@
+name: GitHub Activity & Snake Animation
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"  # Runs every 12 hours
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Update Profile README with activity & Generate snake animation
+
+    steps:
+      # Activity Update
+      - uses: actions/checkout@v2
+      - uses: jamesgeorge007/github-activity-readme@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          COMMIT_MSG: 'Update GitHub activity'
+          MAX_LINES: 5
+          
+      # Generate Snake Animation  
+      - uses: Platane/snk@master
+        id: snake-gif
+        with:
+          github_user_name: cyberRuptor
+          svg_out_path: dist/github-contribution-grid-snake-dark.svg
+          snake_color: 'blue'
+          
+      - name: Push Snake Animation
+        uses: crazy-max/ghaction-github-pages@v2.6.0
+        with:
+          target_branch: output
+          build_dir: dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
