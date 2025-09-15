@@ -27,7 +27,7 @@
 
 <!-- ABOUT ME WITH TYPEWRITER EFFECT -->
 <h2 align="center">
-  <img src="https://readme-typing-svg.herokuapp.com/?lines=Cybersecurity+Expert;Cloud+Native+Architect;Kubernetes+Enthusiast;Open+Source+Contributor&font=Fira%20Code&center=true&width=440&height=45&color=f75c7e&vCenter=true&size=22&pause=1000">
+  <img src="https://readme-typing-svg.herokuapp.com/?lines=Cybersecurity+Enthusiast;DevSecOps+Engineer;Kubernetes+Enthusiast;Open+Source+Contributor&font=Fira%20Code&center=true&width=440&height=45&color=f75c7e&vCenter=true&size=22&pause=1000">
 </h2>
 
 <p align="center">
