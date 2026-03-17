@@ -1,6 +1,11 @@
 <div align="center">
-  <img src="./cyberruptor_hero_banner_1773559757537.png" width="100%" />
+  <img src="./cyberruptor_hero_banner.png" width="100%" />
 </div>
+
+<div align="center">
+  <img src="./profile-3d-contrib/profile-gitblock.svg" width="100%" />
+</div>
+
 
 <div align="center">
   <img src="https://readme-typing-svg.herokuapp.com/?lines=INITIALIZING+SYSTEM...;ACCESSING+MAINFRAME...;BYPASSING+FIREWALLS...;WELCOME+COMMANDER+cyberRuptor&font=Fira+Code&center=true&width=440&height=45&color=F85D7F&vCenter=true&size=20&pause=1000">
@@ -97,6 +102,8 @@ graph LR
 <div align="center">
   <img src="https://github-readme-activity-graph.vercel.app/graph?username=cyberRuptor&theme=react-dark&hide_border=true&area=true&point=F85D7F&line=F85D7F&bg_color=0D1117" width="95%" />
 </div>
+
+
 
 ---
 
@@ -209,16 +216,12 @@ graph LR
 
 ---
 
-## 🎧 Hackers Frequency
-
 <div align="center">
-  <img src="https://spotify-github-profile.vercel.app/api/view?uid=cyberRuptor&cover_image=true&theme=novatorem&bar_color=F85D7F&bar_color_cover=true" width="70%" />
-</div>
-
----
-
-<div align="center">
-  <img src="https://github.com/cyberRuptor/cyberRuptor/blob/output/github-contribution-grid-snake-dark.svg" width="100%" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/cyberRuptor/cyberRuptor/output/github-contribution-grid-snake-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cyberRuptor/cyberRuptor/output/github-contribution-grid-snake.svg">
+    <img alt="github contribution grid snake animation" src="https://raw.githubusercontent.com/cyberRuptor/cyberRuptor/output/github-contribution-grid-snake.svg" width="100%">
+  </picture>
 </div>
 
 <div align="center">
