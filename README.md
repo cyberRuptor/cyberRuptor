@@ -4,6 +4,13 @@
 ──────────────────────────────────────────────────────────────── -->
 
 <picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/shiva-dark.svg">
+  <img src="./assets/shiva-light.svg" width="100%" alt="Lord Shiva (Mahadev) seated in meditation on Kailash, with crescent moon, Ganga, Vasuki, third eye, trishul and damru — drawn in contribution-graph cells. ॐ नमः शिवाय · हर हर महादेव">
+</picture>
+
+<br><br>
+
+<picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/hero-dark.svg">
   <img src="./assets/hero-light.svg" width="100%" alt="Nikhil Goyal — DevSecOps engineer at Airtel Digital. I build pipelines that heal themselves and clusters that never need saving.">
 </picture>

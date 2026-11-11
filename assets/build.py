@@ -111,6 +111,15 @@ def write(name, theme, content):
     (OUT / f"{name}-{theme}.svg").write_text(content, encoding="utf-8")
 
 
+def anim(attr, frm, to, delay, dur, ease=True):
+    """Intro animation that rests on the final value (element attrs hold the final state)."""
+    total = delay + dur
+    k = delay / total if total else 0
+    spline = ' calcMode="spline" keySplines="0 0 1 1;.2 .7 .2 1"' if ease else ""
+    return (f'<animate attributeName="{attr}" values="{frm};{frm};{to}" keyTimes="0;{k:.3f};1" '
+            f'dur="{total:.2f}s" fill="freeze"{spline}/>')
+
+
 def ruler(y, t, x0=0, x1=W, step=12):
     """Blueprint ruler: minor ticks every `step`, majors every 10."""
     out = [line(x0, y, x1, y, t["line"])]
@@ -396,6 +405,93 @@ def contact_card(t, c):
     return svg(w, h, "".join(b), f'{c["name"]}: {c["handle"]}')
 
 
+# ─── Mahadev (contribution-cell invocation) ──────────────────────────────────
+def shiva(t):
+    """Mahadev drawn in contribution-graph cells. Grid from assets/shiva.grid
+    (regenerate with assets/shiva_grid.py)."""
+    import random
+    rows = (OUT / "shiva.grid").read_text().split()
+    R_, C_ = len(rows), len(rows[0])
+    pitch = W / C_
+    cell = pitch * 0.8
+    gh = R_ * pitch
+    H = gh + 96
+    rnd = random.Random(108)  # deterministic texture
+    ink_op = [0.13, 0.32, 0.62, 0.9]
+    acc_op = [0.35, 0.6, 0.85, 1]
+    b = [
+        "<defs>"
+        f'<pattern id="sg" width="{pitch}" height="{pitch}" patternUnits="userSpaceOnUse">'
+        f'<rect x="{(pitch-cell)/2:.2f}" y="{(pitch-cell)/2:.2f}" width="{cell:.2f}" height="{cell:.2f}" rx="1.4" '
+        f'fill="{t["line"]}" opacity=".45"/></pattern>'
+        f'<radialGradient id="eyeglow"><stop offset="0" stop-color="{t["accent"]}" stop-opacity=".55"/>'
+        f'<stop offset="1" stop-color="{t["accent"]}" stop-opacity="0"/></radialGradient>'
+        f'<linearGradient id="scan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{t["accent"]}" stop-opacity="0"/>'
+        f'<stop offset="1" stop-color="{t["accent"]}" stop-opacity=".18"/></linearGradient>'
+        "</defs>",
+        f'<rect width="{W}" height="{gh:.1f}" fill="url(#sg)"/>',
+    ]
+    eye = []
+    ganga = []
+    b[0] = b[0].replace("</defs>", f'<rect id="c" width="{cell:.1f}" height="{cell:.1f}" rx="1.4"/></defs>')
+    off = (pitch - cell) / 2
+    for r, row in enumerate(rows):
+        groups = {}  # (fill, opacity) → [use, …]
+        for c, ch in enumerate(row):
+            if ch == ".":
+                continue
+            use = f'<use href="#c" x="{c*pitch+off:.1f}" y="{r*pitch+off:.1f}"/>'
+            if ch == "E":
+                eye.append((c * pitch + off, r * pitch + off))
+                key = (t["accent"], 1.0)
+            elif ch.islower():
+                lvl = "abcd".index(ch)
+                jitter = rnd.uniform(0.82, 1.0) if lvl >= 2 else rnd.uniform(0.7, 1.15)
+                key = (t["ink"], round(min(ink_op[lvl] * jitter, 1) * 20) / 20)  # 5% buckets
+            else:
+                lvl = "ABCD".index(ch)
+                if ch == "A":
+                    ganga.append(use)
+                    continue
+                key = (t["accent"], acc_op[lvl])
+            groups.setdefault(key, []).append(use)
+        if groups:
+            body = "".join(f'<g fill="{f}" opacity="{o:g}">{"".join(u)}</g>' for (f, o), u in groups.items())
+            # rise from the earth: bottom rows appear first
+            b.append("<g>" + body + anim("opacity", 0, 1, (R_ - r) * 0.035, 0.4, ease=False) + "</g>")
+    if ganga:  # the Ganga shimmers
+        b.append(f'<g fill="{t["accent"]}" opacity="{acc_op[0]}">' + "".join(ganga) +
+                 '<animate attributeName="opacity" values="{acc_op[0]};.12;{acc_op[0]}" dur="3.2s" repeatCount="indefinite"/></g>')
+    if eye:
+        ex = sum(x for x, _ in eye) / len(eye) + cell / 2
+        ey = sum(y for _, y in eye) / len(eye) + cell / 2
+        b.append(f'<circle cx="{ex:.1f}" cy="{ey:.1f}" r="38" fill="url(#eyeglow)">'
+                 f'<animate attributeName="r" values="22;44;22" dur="3s" repeatCount="indefinite"/></circle>')
+        b.append(f'<circle cx="{ex:.1f}" cy="{ey:.1f}" r="6" fill="none" stroke="{t["accent"]}" stroke-width="1.2" opacity="0">'
+                 f'<animate attributeName="r" values="6;90" dur="3s" repeatCount="indefinite"/>'
+                 f'<animate attributeName="opacity" values=".8;0" dur="3s" repeatCount="indefinite"/></circle>')
+    # slow meditative scanline
+    b.append(f'<rect x="0" y="-60" width="{W}" height="60" fill="url(#scan)">'
+             f'<animate attributeName="y" values="-60;{gh:.0f}" dur="9s" repeatCount="indefinite"/></rect>')
+    # overlay labels
+    b.append(text(16, 26, "00 — INVOCATION", 11, t["muted"], ls=3))
+    b.append(text(W - 16, 26, f"{C_} × {R_} CELLS · {sum(ch != '.' for row in rows for ch in row):,} LIT", 11,
+                  t["muted"], anchor="end", ls=2))
+    # caption band
+    cy = gh + 22
+    b.append(line(0, cy, W, cy, t["line"]))
+    b.append(line(0, cy, 46, cy, t["accent"], 2))
+    b.append(text(0, cy + 44, "ॐ नमः शिवाय", 26, t["ink"], DEVA, 600))
+    b.append(text(0, cy + 66, "OM NAMAH SHIVAYA", 11, t["muted"], ls=3))
+    b.append(text(W / 2, cy + 44, "LEVEL 0 · · · · LEVEL 4", 10, t["muted"], anchor="middle", ls=2))
+    for i, op in enumerate([0.45, *ink_op[1:], 1]):
+        fill = t["line"] if i == 0 else (t["accent"] if i == 4 else t["ink"])
+        b.append(f'<rect x="{W/2 - 52 + i*22:.1f}" y="{cy+52}" width="14" height="14" rx="2.5" fill="{fill}" opacity="{op}"/>')
+    b.append(text(W, cy + 44, "हर हर महादेव", 26, t["ink"], DEVA, 600, anchor="end"))
+    b.append(text(W, cy + 66, "FIG. 0 — MAHADEV, IN CONTRIBUTION CELLS", 11, t["muted"], anchor="end", ls=2.5))
+    return svg(W, int(H), "".join(b), "Lord Shiva (Mahadev) in meditation on Kailash with trishul and damru, drawn in contribution-graph cells. Om Namah Shivaya.")
+
+
 # ─── Footer ──────────────────────────────────────────────────────────────────
 def footer(t):
     H = 120
@@ -414,6 +510,7 @@ def footer(t):
 # ─── Build ───────────────────────────────────────────────────────────────────
 def main():
     for name, t in THEMES.items():
+        write("shiva", name, shiva(t))
         write("hero", name, hero(t))
         write("pipeline", name, pipeline(t))
         write("toolkit", name, toolkit(t))
