@@ -117,8 +117,8 @@
 
 <!-- BLOG-POST-LIST:START -->`Jun 2026` &nbsp; [Kubernetes Networking Evolution: Why Gateway API is Replacing Traditional Ingress](https://aws.plainenglish.io/kubernetes-networking-evolution-why-gateway-api-is-replacing-traditional-ingress-01d7765af54e?source=rss-c1c15c424dc9------2)<br>
 `Jun 2026` &nbsp; [kubectl Port-Forward Frontend Loads but API Calls Fail — Fix Explained](https://medium.com/@cyberRuptor/port-forwarding-a-frontend-backend-application-locally-using-an-nginx-gateway-48503c43854f?source=rss-c1c15c424dc9------2)<br>
-`Feb 2026` &nbsp; [From Chaos to Clarity: How We Built a Self-Healing CI/CD Pipeline That Talks to JIRA &lpar;part-2&rpar;](https://medium.com/developersglobal/from-chaos-to-clarity-how-we-built-a-self-healing-ci-cd-pipeline-that-talks-to-jira-part-2-28b59058d90d?source=rss-c1c15c424dc9------2)<br>
-`Feb 2026` &nbsp; [From Chaos to Clarity: How We Built a Self-Healing CI/CD Pipeline That Talks to JIRA &lpar;part-1&rpar;](https://medium.com/developersglobal/from-chaos-to-clarity-how-we-built-a-self-healing-ci-cd-pipeline-that-talks-to-jira-part-1-b7ee88df0e27?source=rss-c1c15c424dc9------2)<br>
+`Feb 2026` &nbsp; [From Chaos to Clarity: How We Built a Self-Healing CI/CD Pipeline That Talks to JIRA &lpar;part-2&rpar;](https://blog.developersglobal.got-a.page/from-chaos-to-clarity-how-we-built-a-self-healing-ci-cd-pipeline-that-talks-to-jira-part-2-28b59058d90d?source=rss-c1c15c424dc9------2)<br>
+`Feb 2026` &nbsp; [From Chaos to Clarity: How We Built a Self-Healing CI/CD Pipeline That Talks to JIRA &lpar;part-1&rpar;](https://blog.developersglobal.got-a.page/from-chaos-to-clarity-how-we-built-a-self-healing-ci-cd-pipeline-that-talks-to-jira-part-1-b7ee88df0e27?source=rss-c1c15c424dc9------2)<br>
 <!-- BLOG-POST-LIST:END -->
 
 <br>
