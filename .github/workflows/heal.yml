@@ -1,0 +1,52 @@
+name: Self-heal
+
+# The self-healing loop from the Medium series, running on this repo's own pipelines:
+# fail → incident issue → retry with backoff → auto-close on recovery.
+on:
+  workflow_run:
+    workflows: ["Live telemetry", "Security posture", "Blog Posts Workflow", "Provenance"]
+    types: [completed]
+  workflow_dispatch:   # re-render the health panel
+
+permissions:
+  contents: write
+  issues: write
+  actions: write       # to re-run failed jobs
+
+concurrency:
+  group: heal-${{ github.event.workflow_run.name || 'manual' }}
+  cancel-in-progress: false
+
+jobs:
+  heal:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(fromJSON('["success","failure","timed_out"]'), github.event.workflow_run.conclusion)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Heal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && 'render' || (github.event.workflow_run.conclusion == 'success' && 'pass' || 'fail') }}
+          WF: ${{ github.event.workflow_run.name }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          EVENT_AT: ${{ github.event.workflow_run.updated_at }}
+        run: python3 assets/heal.py "$MODE"
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898183+github-actions[bot]@users.noreply.github.com"
+          git add assets/live/incidents.json assets/live/health-*.svg
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(heal): update incident log"
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep $((i * 5)); done
+          exit 1

@@ -7,6 +7,9 @@ how much of every cell it covers. The result is saved to assets/shiva.grid,
 which build.py turns into the cell artwork (no extra tools needed in CI).
 
     python3 assets/shiva_grid.py        # needs rsvg-convert + Pillow
+
+NOTE: the bottom two rows carry the CTF payload. After regenerating, re-seal:
+    CTF_FLAG='flag{…}' python3 assets/ctf.py seal
 """
 import subprocess
 import tempfile

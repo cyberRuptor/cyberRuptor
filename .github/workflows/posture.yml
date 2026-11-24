@@ -1,0 +1,65 @@
+name: Security posture
+
+on:
+  schedule:
+    - cron: "41 3 * * *"   # daily, 09:11 IST
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["assets/posture.py", ".github/workflows/posture.yml"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: security-posture
+  cancel-in-progress: true
+
+env:
+  # Scanners are pinned and checksum-verified — no third-party actions in the trust path.
+  TRIVY_VERSION: "0.76.1"
+  TRIVY_SHA256: "c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0"
+  GITLEAKS_VERSION: "8.30.1"
+  GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+  SCORECARD_VERSION: "5.6.0"
+  SCORECARD_SHA256: "19bde07129450cb65a95c6e3b9f34e034341579e6f0e241546ec3ae6efb2dd9a"
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install scanners (pinned + verified)
+        run: |
+          set -euo pipefail
+          BIN="$RUNNER_TEMP/bin"; mkdir -p "$BIN"; cd "$RUNNER_TEMP"
+          fetch() {  # url sha256 member
+            curl -fsSL -o pkg.tgz "$1"
+            echo "$2  pkg.tgz" | sha256sum -c -
+            tar -xzf pkg.tgz -C "$BIN" "$3"
+            rm pkg.tgz
+          }
+          fetch "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" "$TRIVY_SHA256" trivy
+          fetch "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" "$GITLEAKS_SHA256" gitleaks
+          fetch "https://github.com/ossf/scorecard/releases/download/v${SCORECARD_VERSION}/scorecard_${SCORECARD_VERSION}_linux_amd64.tar.gz" "$SCORECARD_SHA256" scorecard
+          echo "$BIN" >> "$GITHUB_PATH"
+
+      - name: Scan and render
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 assets/posture.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898183+github-actions[bot]@users.noreply.github.com"
+          git add assets/live/posture-*.svg assets/live/posture.json
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(posture): rescan repositories"
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep $((i * 5)); done
+          exit 1

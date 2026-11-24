@@ -23,12 +23,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Render design system
-        run: python3 assets/build.py
       - name: Render live graphs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 assets/live.py
+      - name: Render design system   # after live.py: the Mahadev art reads live/pulse.json
+        run: python3 assets/build.py
+      - name: Render self-heal panel
+        run: python3 assets/heal.py render
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"

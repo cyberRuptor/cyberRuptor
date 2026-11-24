@@ -18,8 +18,22 @@
 <br><br>
 
 <picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/h-ctf-dark.svg">
+  <img src="./assets/h-ctf-light.svg" width="100%" alt="01 — Third eye (capture the flag)">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/live/ctf-dark.svg">
+  <img src="./assets/live/ctf-light.svg" width="100%" alt="Capture the flag — open the third eye. A flag is hidden in the Mahadev artwork above, behind three stages: recon, crypto and stego. Submit sha256 of flag:your-login as an issue titled ctf: hash.">
+</picture>
+
+<sub>Found it? → <a href="https://github.com/cyberRuptor/cyberRuptor/issues/new?title=ctf%3A%20">submit your proof</a> · verified automatically by <a href="./.github/workflows/ctf.yml">ctf.yml</a> · no spoilers in issues, please.</sub>
+
+<br><br>
+
+<picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/h-now-dark.svg">
-  <img src="./assets/h-now-light.svg" width="100%" alt="01 — Now">
+  <img src="./assets/h-now-light.svg" width="100%" alt="02 — Now">
 </picture>
 
 `building ` &nbsp; self-healing CI/CD that files its own Jira tickets — and fixes what it can before a human sees them<br>
@@ -31,7 +45,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/h-telemetry-dark.svg">
-  <img src="./assets/h-telemetry-light.svg" width="100%" alt="02 — Telemetry">
+  <img src="./assets/h-telemetry-light.svg" width="100%" alt="03 — Telemetry">
 </picture>
 
 <picture>
@@ -58,7 +72,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/h-systems-dark.svg">
-  <img src="./assets/h-systems-light.svg" width="100%" alt="03 — Systems">
+  <img src="./assets/h-systems-light.svg" width="100%" alt="04 — Systems">
 </picture>
 
 <picture>
@@ -71,8 +85,31 @@
 <br><br>
 
 <picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/live/health-dark.svg">
+  <img src="./assets/live/health-light.svg" width="100%" alt="This profile runs the self-healing loop on itself: uptime, mean time to recovery, incidents and auto-heal rate over 90 days, with a daily status bar.">
+</picture>
+
+<sub>When a profile workflow fails, <a href="./.github/workflows/heal.yml">heal.yml</a> files an <a href="https://github.com/cyberRuptor/cyberRuptor/issues?q=label%3Aincident">incident</a>, retries with backoff, and closes it on recovery.</sub>
+
+<br><br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/h-posture-dark.svg">
+  <img src="./assets/h-posture-light.svg" width="100%" alt="05 — Security posture">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/live/posture-dark.svg">
+  <img src="./assets/live/posture-light.svg" width="100%" alt="Live security audit of my own repositories: CVEs, Helm/IaC misconfigurations, secrets in tree and git history, and OpenSSF Scorecard, rescanned daily.">
+</picture>
+
+<sub>Rescanned every day by <a href="./.github/workflows/posture.yml">posture.yml</a> — scanners are pinned and checksum-verified; only counts are published, never findings.</sub>
+
+<br><br>
+
+<picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/h-work-dark.svg">
-  <img src="./assets/h-work-light.svg" width="100%" alt="04 — Selected work">
+  <img src="./assets/h-work-light.svg" width="100%" alt="06 — Selected work">
 </picture>
 
 <p>
@@ -88,7 +125,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/h-network-dark.svg">
-  <img src="./assets/h-network-light.svg" width="100%" alt="05 — Network">
+  <img src="./assets/h-network-light.svg" width="100%" alt="07 — Network">
 </picture>
 
 <picture>
@@ -100,7 +137,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/h-toolkit-dark.svg">
-  <img src="./assets/h-toolkit-light.svg" width="100%" alt="06 — Toolkit">
+  <img src="./assets/h-toolkit-light.svg" width="100%" alt="08 — Toolkit">
 </picture>
 
 <picture>
@@ -112,7 +149,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/h-writing-dark.svg">
-  <img src="./assets/h-writing-light.svg" width="100%" alt="07 — Writing">
+  <img src="./assets/h-writing-light.svg" width="100%" alt="09 — Writing">
 </picture>
 
 <!-- BLOG-POST-LIST:START -->
@@ -126,7 +163,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/h-log-dark.svg">
-  <img src="./assets/h-log-light.svg" width="100%" alt="08 — Live log">
+  <img src="./assets/h-log-light.svg" width="100%" alt="10 — Live log">
 </picture>
 
 <picture>
@@ -138,7 +175,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/h-contact-dark.svg">
-  <img src="./assets/h-contact-light.svg" width="100%" alt="09 — Contact">
+  <img src="./assets/h-contact-light.svg" width="100%" alt="11 — Contact">
 </picture>
 
 <picture>
@@ -158,6 +195,15 @@
 </p>
 
 <br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/live/provenance-dark.svg">
+  <img src="./assets/live/provenance-light.svg" width="100%" alt="Every graphic on this profile is signed with Sigstore and carries SLSA build provenance. Verify with: gh attestation verify asset.svg -R cyberRuptor/cyberRuptor">
+</picture>
+
+<sub>Verify any graphic: <code>curl -sLO https://raw.githubusercontent.com/cyberRuptor/cyberRuptor/main/assets/shiva-dark.svg && gh attestation verify shiva-dark.svg -R cyberRuptor/cyberRuptor</code> · <a href="https://github.com/cyberRuptor/cyberRuptor/attestations">all attestations</a></sub>
+
+<br><br>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/footer-dark.svg">
