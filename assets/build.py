@@ -6,6 +6,8 @@ Generates every SVG used by README.md in a light and a dark variant.
 Run:  python3 assets/build.py
 Edit the CONTENT section below and re-run to update the profile.
 """
+import datetime as dt
+import json
 import math
 from pathlib import Path
 from xml.sax.saxutils import escape as esc
@@ -76,15 +78,17 @@ CONTACTS = [
 ]
 
 HEADERS = [
-    ("now", "01", "NOW", "what's on the bench"),
-    ("telemetry", "02", "TELEMETRY", "live · redrawn daily from the github api"),
-    ("systems", "03", "SYSTEMS", "self-healing ci/cd · reference architecture"),
-    ("work", "04", "SELECTED WORK", "repositories"),
-    ("network", "05", "NETWORK", "organisations & upstreams"),
-    ("toolkit", "06", "TOOLKIT", "daily drivers"),
-    ("writing", "07", "WRITING", "auto-synced from medium"),
-    ("log", "08", "LIVE LOG", "recent public activity"),
-    ("contact", "09", "CONTACT", "open channels"),
+    ("ctf", "01", "THIRD EYE", "capture the flag · always open"),
+    ("now", "02", "NOW", "what's on the bench"),
+    ("telemetry", "03", "TELEMETRY", "live · redrawn daily from the github api"),
+    ("systems", "04", "SYSTEMS", "self-healing ci/cd · reference architecture"),
+    ("posture", "05", "SECURITY POSTURE", "my own repos · scanned daily · trivy · gitleaks · scorecard"),
+    ("work", "06", "SELECTED WORK", "repositories"),
+    ("network", "07", "NETWORK", "organisations & upstreams"),
+    ("toolkit", "08", "TOOLKIT", "daily drivers"),
+    ("writing", "09", "WRITING", "auto-synced from medium"),
+    ("log", "10", "LIVE LOG", "recent public activity"),
+    ("contact", "11", "CONTACT", "open channels"),
 ]
 
 
@@ -127,6 +131,56 @@ def ruler(y, t, x0=0, x1=W, step=12):
         major = i % 10 == 0
         out.append(line(x, y, x, y - (8 if major else 4), t["faint"] if major else t["line"]))
     return "".join(out)
+
+
+# ─── Sky: moon, tithi, Mahashivratri, pulse (reactive Mahadev) ──────────────
+IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
+SYNODIC = 29.530588853
+NEW_MOON_REF = dt.datetime(2000, 1, 6, 18, 14, tzinfo=dt.timezone.utc)
+TITHIS = ["PRATIPADA", "DWITIYA", "TRITIYA", "CHATURTHI", "PANCHAMI", "SHASHTHI", "SAPTAMI", "ASHTAMI",
+          "NAVAMI", "DASHAMI", "EKADASHI", "DWADASHI", "TRAYODASHI", "CHATURDASHI"]
+# Per Drik Panchang (2027–28) and published calendars (2029–30). Extend as years pass.
+MAHASHIVRATRI = [dt.date(2026, 2, 15), dt.date(2027, 3, 6), dt.date(2028, 2, 23),
+                 dt.date(2029, 2, 11), dt.date(2030, 3, 2)]
+
+
+def moon(now):
+    """Mean-moon phase → (phase 0–1, illuminated fraction, tithi label). Accurate to about ±1 tithi."""
+    phase = ((now - NEW_MOON_REF).total_seconds() / 86400 % SYNODIC) / SYNODIC
+    illum = (1 - math.cos(2 * math.pi * phase)) / 2
+    i = int(phase * 30)
+    if i == 14:
+        label = "PURNIMA"
+    elif i == 29:
+        label = "AMAVASYA"
+    else:
+        label = ("SHUKLA " if i < 15 else "KRISHNA ") + TITHIS[i % 15]
+    return phase, illum, label
+
+
+def shivratri(today):
+    nxt = next((d for d in MAHASHIVRATRI if d >= today), None)
+    return nxt, ((nxt - today).days if nxt else None)
+
+
+def pulse():
+    try:
+        return json.loads((OUT / "live" / "pulse.json").read_text())
+    except Exception:  # noqa: BLE001  (local build without live data)
+        return dict(streak=0, week=0)
+
+
+def moon_glyph(t, cx, cy, r, phase):
+    """Disc with the lit part drawn as two arcs (outer limb + elliptical terminator)."""
+    rx = abs(math.cos(2 * math.pi * phase)) * r
+    if phase < 0.5:
+        outer, inner = 1, 0 if phase < 0.25 else 1
+    else:
+        outer, inner = 0, 0 if phase < 0.75 else 1
+    lit = (f'<path d="M{cx} {cy-r} A{r} {r} 0 0 {outer} {cx} {cy+r} A{rx:.2f} {r} 0 0 {inner} {cx} {cy-r} Z" '
+           f'fill="{t["accent"]}"/>')
+    return (f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{t["line"]}"/>' + lit +
+            f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{t["faint"]}" stroke-width="1"/>')
 
 
 # ─── Hero ────────────────────────────────────────────────────────────────────
@@ -417,6 +471,12 @@ def shiva(t):
     gh = R_ * pitch
     H = gh + 96
     rnd = random.Random(108)  # deterministic texture
+    now = dt.datetime.now(IST)
+    pl = pulse()
+    sr_date, sr_days = shivratri(now.date())
+    festival = sr_days == 0
+    # third eye opens with the streak: 0 → closed, 30+ days → fully open
+    k = 1.0 if festival else min(pl.get("streak", 0) / 30, 1.0)
     ink_op = [0.13, 0.32, 0.62, 0.9]
     acc_op = [0.35, 0.6, 0.85, 1]
     b = [
@@ -424,7 +484,7 @@ def shiva(t):
         f'<pattern id="sg" width="{pitch}" height="{pitch}" patternUnits="userSpaceOnUse">'
         f'<rect x="{(pitch-cell)/2:.2f}" y="{(pitch-cell)/2:.2f}" width="{cell:.2f}" height="{cell:.2f}" rx="1.4" '
         f'fill="{t["line"]}" opacity=".45"/></pattern>'
-        f'<radialGradient id="eyeglow"><stop offset="0" stop-color="{t["accent"]}" stop-opacity=".55"/>'
+        f'<radialGradient id="eyeglow"><stop offset="0" stop-color="{t["accent"]}" stop-opacity="{0.12 + 0.5 * k:.2f}"/>'
         f'<stop offset="1" stop-color="{t["accent"]}" stop-opacity="0"/></radialGradient>'
         f'<linearGradient id="scan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{t["accent"]}" stop-opacity="0"/>'
         f'<stop offset="1" stop-color="{t["accent"]}" stop-opacity=".18"/></linearGradient>'
@@ -443,7 +503,10 @@ def shiva(t):
             use = f'<use href="#c" x="{c*pitch+off:.1f}" y="{r*pitch+off:.1f}"/>'
             if ch == "E":
                 eye.append((c * pitch + off, r * pitch + off))
-                key = (t["accent"], 1.0)
+                key = (t["accent"], round(0.3 + 0.7 * k, 2))
+            elif r >= R_ - 2 and ch in "az":
+                # the earth beneath him — two shades of ash (see assets/ctf.py)
+                key = (t["ink"], 0.13 if ch == "z" else 0.12)
             elif ch.islower():
                 lvl = "abcd".index(ch)
                 jitter = rnd.uniform(0.82, 1.0) if lvl >= 2 else rnd.uniform(0.7, 1.15)
@@ -459,24 +522,44 @@ def shiva(t):
             body = "".join(f'<g fill="{f}" opacity="{o:g}">{"".join(u)}</g>' for (f, o), u in groups.items())
             # rise from the earth: bottom rows appear first
             b.append("<g>" + body + anim("opacity", 0, 1, (R_ - r) * 0.035, 0.4, ease=False) + "</g>")
+    ganga_dur = max(0.9, 3.2 - 0.08 * pl.get("week", 0))  # flows faster in busy weeks
     if ganga:  # the Ganga shimmers
         b.append(f'<g fill="{t["accent"]}" opacity="{acc_op[0]}">' + "".join(ganga) +
-                 '<animate attributeName="opacity" values="{acc_op[0]};.12;{acc_op[0]}" dur="3.2s" repeatCount="indefinite"/></g>')
+                 f'<animate attributeName="opacity" values="{acc_op[0]};.12;{acc_op[0]}" dur="{ganga_dur:.2f}s" repeatCount="indefinite"/></g>')
     if eye:
         ex = sum(x for x, _ in eye) / len(eye) + cell / 2
         ey = sum(y for _, y in eye) / len(eye) + cell / 2
-        b.append(f'<circle cx="{ex:.1f}" cy="{ey:.1f}" r="38" fill="url(#eyeglow)">'
-                 f'<animate attributeName="r" values="22;44;22" dur="3s" repeatCount="indefinite"/></circle>')
-        b.append(f'<circle cx="{ex:.1f}" cy="{ey:.1f}" r="6" fill="none" stroke="{t["accent"]}" stroke-width="1.2" opacity="0">'
-                 f'<animate attributeName="r" values="6;90" dur="3s" repeatCount="indefinite"/>'
-                 f'<animate attributeName="opacity" values=".8;0" dur="3s" repeatCount="indefinite"/></circle>')
+        lo, hi = 10 + 12 * k, 18 + 26 * k
+        b.append(f'<circle cx="{ex:.1f}" cy="{ey:.1f}" r="{hi:.0f}" fill="url(#eyeglow)">'
+                 f'<animate attributeName="r" values="{lo:.0f};{hi:.0f};{lo:.0f}" dur="{3.6 - 1.2 * k:.1f}s" repeatCount="indefinite"/></circle>')
+        if k >= 0.25:  # shockwave only once the eye is properly open (streak ≥ 1 week)
+            b.append(f'<circle cx="{ex:.1f}" cy="{ey:.1f}" r="6" fill="none" stroke="{t["accent"]}" stroke-width="1.2" opacity="0">'
+                     f'<animate attributeName="r" values="6;{30 + 60 * k:.0f}" dur="3s" repeatCount="indefinite"/>'
+                     f'<animate attributeName="opacity" values=".8;0" dur="3s" repeatCount="indefinite"/></circle>')
     # slow meditative scanline
     b.append(f'<rect x="0" y="-60" width="{W}" height="60" fill="url(#scan)">'
              f'<animate attributeName="y" values="-60;{gh:.0f}" dur="9s" repeatCount="indefinite"/></rect>')
+    from ctf import stage1_comment  # CTF prong I — present in the source, never drawn
+    b.append(stage1_comment())
     # overlay labels
     b.append(text(16, 26, "00 — INVOCATION", 11, t["muted"], ls=3))
     b.append(text(W - 16, 26, f"{C_} × {R_} CELLS · {sum(ch != '.' for row in rows for ch in row):,} LIT", 11,
                   t["muted"], anchor="end", ls=2))
+    # live sky: real moon phase + tithi
+    phase, illum, tithi = moon(now)
+    b.append(moon_glyph(t, 27, 58, 11, phase))
+    b.append(text(48, 52, tithi, 11, t["ink"], weight=700, ls=2))
+    b.append(text(48, 68, f"{illum*100:.0f}% LIT · {now:%d %b}".upper(), 10, t["muted"], ls=1.5))
+    # third eye ↔ streak
+    st = pl.get("streak", 0)
+    b.append(text(16, 98, f"TRINETRA {k*100:.0f}% OPEN · STREAK {st}D", 10,
+                  t["accent"] if k >= 1 else t["muted"], ls=1.5, weight=700 if k >= 1 else 400))
+    # Mahashivratri
+    if festival:
+        b.append(text(W / 2, 46, "महाशिवरात्रि", 30, t["accent"], DEVA, 700, anchor="middle"))
+        b.append(text(W / 2, 66, "MAHASHIVRATRI · THE THIRD EYE IS OPEN TONIGHT", 10, t["accent"], anchor="middle", ls=3))
+    elif sr_date:
+        b.append(text(16, 116, f"MAHASHIVRATRI {sr_date:%d %b %Y} · T−{sr_days}D".upper(), 10, t["muted"], ls=1.5))
     # caption band
     cy = gh + 22
     b.append(line(0, cy, W, cy, t["line"]))
@@ -489,7 +572,9 @@ def shiva(t):
         b.append(f'<rect x="{W/2 - 52 + i*22:.1f}" y="{cy+52}" width="14" height="14" rx="2.5" fill="{fill}" opacity="{op}"/>')
     b.append(text(W, cy + 44, "हर हर महादेव", 26, t["ink"], DEVA, 600, anchor="end"))
     b.append(text(W, cy + 66, "FIG. 0 — MAHADEV, IN CONTRIBUTION CELLS", 11, t["muted"], anchor="end", ls=2.5))
-    return svg(W, int(H), "".join(b), "Lord Shiva (Mahadev) in meditation on Kailash with trishul and damru, drawn in contribution-graph cells. Om Namah Shivaya.")
+    return svg(W, int(H), "".join(b), "Lord Shiva (Mahadev) in meditation on Kailash with trishul and damru, drawn in "
+               f"contribution-graph cells. Tonight's moon: {tithi.title()}. The third eye is {k*100:.0f}% open "
+               f"(a {st}-day streak). Om Namah Shivaya.")
 
 
 # ─── Footer ──────────────────────────────────────────────────────────────────

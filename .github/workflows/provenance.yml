@@ -1,0 +1,63 @@
+name: Provenance
+
+# Signs every SVG on the profile with GitHub Artifact Attestations (Sigstore + SLSA provenance).
+# Re-attests only when the set of assets actually changed.
+on:
+  push:
+    branches: [main]
+    paths: ["assets/**"]
+  workflow_run:
+    workflows: ["Live telemetry", "Security posture", "CTF · third eye"]  # not Self-heal: it listens to us (no ping-pong)
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write       # Sigstore keyless signing via GitHub OIDC
+  attestations: write
+
+concurrency:
+  group: provenance
+  cancel-in-progress: true
+
+jobs:
+  attest:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main        # always attest the latest committed assets
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build manifest
+        id: sums
+        run: python3 assets/provenance.py checksums "$RUNNER_TEMP/SHA256SUMS"
+
+      - name: Attest
+        id: attest
+        if: steps.sums.outputs.changed == 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-checksums: ${{ runner.temp }}/SHA256SUMS
+
+      - name: Render badge
+        if: steps.sums.outputs.changed == 'true'
+        env:
+          SUMS: ${{ runner.temp }}/SHA256SUMS
+          ATTEST_URL: ${{ steps.attest.outputs.attestation-url }}
+        run: COMMIT_SHA="$(git rev-parse HEAD)" python3 assets/provenance.py render
+
+      - name: Commit if changed
+        if: steps.sums.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898183+github-actions[bot]@users.noreply.github.com"
+          git add assets/live/SHA256SUMS assets/live/provenance.json assets/live/provenance-*.svg
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(provenance): attest assets"
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep $((i * 5)); done
+          exit 1

@@ -640,6 +640,12 @@ def main():
                     f.write(content)
             except Exception as e:  # keep the previous file if one graphic fails
                 print(f"  ! {name}-{theme}: {e}")
+    # pulse for the reactive Mahadev artwork (read by build.py)
+    cur, longest = streaks(D["days"])
+    week = sum(c for d, c, _ in D["days"] if 0 <= (TODAY - d).days < 7)
+    with open(os.path.join(OUT, "pulse.json"), "w", encoding="utf-8") as f:
+        json.dump(dict(streak=cur, longest=longest, week=week, synced=NOW.strftime("%Y-%m-%dT%H:%MZ")), f, indent=2)
+        f.write("\n")
     print(f"rendered → {OUT}  ({SYNCED})")
 
 

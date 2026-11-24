@@ -1,0 +1,105 @@
+{
+  "scanned_at": "2026-11-24T06:51Z",
+  "tools": {
+    "trivy": "0.71.2",
+    "gitleaks": null,
+    "scorecard": null
+  },
+  "repos": [
+    {
+      "repo": "redis-sentinel-helm-chart",
+      "kind": "OWN",
+      "trivy": {
+        "vulns": {
+          "CRITICAL": 0,
+          "HIGH": 0,
+          "MEDIUM": 0,
+          "LOW": 0
+        },
+        "misconfig": {
+          "total": 15,
+          "high": 5
+        },
+        "tree_secrets": 0
+      },
+      "gitleaks": null,
+      "scorecard": null
+    },
+    {
+      "repo": "mongodb-helm-chart",
+      "kind": "OWN",
+      "trivy": {
+        "vulns": {
+          "CRITICAL": 0,
+          "HIGH": 0,
+          "MEDIUM": 0,
+          "LOW": 0
+        },
+        "misconfig": {
+          "total": 32,
+          "high": 6
+        },
+        "tree_secrets": 0
+      },
+      "gitleaks": null,
+      "scorecard": null
+    },
+    {
+      "repo": "sharepoint-mcp",
+      "kind": "FORK",
+      "trivy": {
+        "vulns": {
+          "CRITICAL": 0,
+          "HIGH": 0,
+          "MEDIUM": 0,
+          "LOW": 0
+        },
+        "misconfig": {
+          "total": 0,
+          "high": 0
+        },
+        "tree_secrets": 0
+      },
+      "gitleaks": null,
+      "scorecard": null
+    },
+    {
+      "repo": "ocft",
+      "kind": "FORK",
+      "trivy": {
+        "vulns": {
+          "CRITICAL": 0,
+          "HIGH": 0,
+          "MEDIUM": 0,
+          "LOW": 0
+        },
+        "misconfig": {
+          "total": 0,
+          "high": 0
+        },
+        "tree_secrets": 0
+      },
+      "gitleaks": null,
+      "scorecard": null
+    },
+    {
+      "repo": "cyberRuptor",
+      "kind": "OWN",
+      "trivy": {
+        "vulns": {
+          "CRITICAL": 0,
+          "HIGH": 0,
+          "MEDIUM": 0,
+          "LOW": 0
+        },
+        "misconfig": {
+          "total": 0,
+          "high": 0
+        },
+        "tree_secrets": 0
+      },
+      "gitleaks": null,
+      "scorecard": null
+    }
+  ]
+}

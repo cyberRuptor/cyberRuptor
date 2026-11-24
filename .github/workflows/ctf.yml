@@ -1,0 +1,72 @@
+name: CTF · third eye
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:   # re-render the panel
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: ctf          # queue submissions; never drop a solve
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'ctf:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify proof
+        id: v
+        if: github.event_name == 'issues'
+        env:
+          # Untrusted input is passed via env only — never interpolated into the script.
+          CTF_FLAG: ${{ secrets.CTF_FLAG }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_USER: ${{ github.event.issue.user.login }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: python3 assets/ctf.py verify
+
+      - name: Render panel
+        if: github.event_name == 'workflow_dispatch'
+        run: python3 assets/ctf.py render
+
+      - name: Reply and close
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ steps.v.outputs.result }}
+          RANK: ${{ steps.v.outputs.rank }}
+          NUM: ${{ github.event.issue.number }}
+          WHO: ${{ github.event.issue.user.login }}
+        run: |
+          case "$RESULT" in
+            solved)
+              [ "$RANK" = "1" ] && extra=" **First blood.** 🩸" || extra=""
+              msg="🔱 The third eye opens. @$WHO, you are solver **#$RANK**.$extra Your name is now on the profile. हर हर महादेव."
+              reason=completed ;;
+            repeat)  msg="You have already seen, @$WHO. Your name is on the board." ; reason=completed ;;
+            wrong)   msg="Not yet, @$WHO. The proof is \`sha256('<flag>:<your-login>')\` — check the flag, your login, and that \`echo -n\` added no newline. Keep meditating." ; reason="not planned" ;;
+            *)       msg="Couldn't read that. Title must be exactly \`ctf: <64-hex sha256>\`." ; reason="not planned" ;;
+          esac
+          gh issue comment "$NUM" --repo "$GITHUB_REPOSITORY" --body "$msg"
+          gh issue close "$NUM" --repo "$GITHUB_REPOSITORY" --reason "$reason"
+          gh issue lock "$NUM" --repo "$GITHUB_REPOSITORY" || true
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898183+github-actions[bot]@users.noreply.github.com"
+          git add assets/live/ctf.json assets/live/ctf-*.svg
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(ctf): update third-eye board"
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep $((i * 5)); done
+          exit 1
