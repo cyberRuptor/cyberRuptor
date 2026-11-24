@@ -159,9 +159,104 @@ def trishul(t, x, y, lit):
     ])
 
 
+EYE_PUPIL = "#0A0C0F"
+
+
+def watching_eye(t, cx, cy, S):
+    """The third eye: opens on load, blinks, glances around, and is scanned. Pure SVG/SMIL."""
+    hw, ho = 190, 62  # half-width, half-height when open
+
+    def lid(h):
+        return f"M{cx-hw} {cy} Q{cx} {cy-2*h} {cx+hw} {cy} Q{cx} {cy+2*h} {cx-hw} {cy} Z"
+
+    o, c = lid(ho), lid(0)
+    lid_anim = (
+        f'<animate attributeName="d" values="{c};{c};{o}" keyTimes="0;0.35;1" dur="1.8s" fill="freeze" '
+        f'calcMode="spline" keySplines="0 0 1 1;.2 .7 .2 1"/>'
+        f'<animate attributeName="d" begin="1.8s" dur="7s" repeatCount="indefinite" '
+        f'values="{o};{o};{c};{o};{o}" keyTimes="0;0.9;0.94;0.98;1"/>'
+    )
+    a = t["accent"]
+    b = [
+        "<defs>",
+        f'<clipPath id="eyeclip"><path d="{o}">{lid_anim}</path></clipPath>',
+        f'<radialGradient id="eyehalo"><stop offset="0" stop-color="{a}" stop-opacity="0.35"/>'
+        f'<stop offset="1" stop-color="{a}" stop-opacity="0"/></radialGradient>',
+        f'<radialGradient id="iris"><stop offset="0" stop-color="{a}" stop-opacity="1"/>'
+        f'<stop offset="0.7" stop-color="{a}" stop-opacity="0.75"/>'
+        f'<stop offset="1" stop-color="{a}" stop-opacity="0.35"/></radialGradient>',
+        "</defs>",
+        # halo that breathes behind the eye
+        f'<ellipse cx="{cx}" cy="{cy}" rx="{hw+70}" ry="{ho+60}" fill="url(#eyehalo)">'
+        f'<animate attributeName="opacity" values="0.45;1;0.45" dur="4s" repeatCount="indefinite"/></ellipse>',
+        # slow-turning reticle ring
+        f'<g><circle cx="{cx}" cy="{cy}" r="{ho+46}" fill="none" stroke="{a}" stroke-opacity="0.35" '
+        f'stroke-width="1" stroke-dasharray="2 9"/>'
+        f'<animateTransform attributeName="transform" type="rotate" from="0 {cx} {cy}" to="360 {cx} {cy}" '
+        f'dur="60s" repeatCount="indefinite"/></g>',
+    ]
+    # tripundra — three ash lines crossing the brow, the eye at their centre
+    gap = 30
+    for i, dy in enumerate((-26, 0, 26)):
+        col, op = (a, 0.8) if dy == 0 else (t["muted"], 0.5)
+        for x1, x2 in ((0, cx - hw - gap), (cx + hw + gap, 2 * cx)):
+            L = x2 - x1
+            b.append(f'<line x1="{x1}" y1="{cy+dy}" x2="{x2}" y2="{cy+dy}" stroke="{col}" stroke-opacity="{op}" '
+                     f'stroke-width="3" stroke-linecap="round" stroke-dasharray="{L}" stroke-dashoffset="0">'
+                     f'<animate attributeName="stroke-dashoffset" values="{L};{L};0" keyTimes="0;{0.1+i*0.1:.2f};1" '
+                     f'dur="1.6s" fill="freeze"/></line>')
+    # inside the eye: sclera, wandering iris, dilating pupil, scan line
+    gaze = ('<animateTransform attributeName="transform" type="translate" dur="11s" repeatCount="indefinite" '
+            'values="0 0;0 0;-62 6;-62 6;58 -4;58 -4;0 0;0 0" keyTimes="0;0.18;0.26;0.42;0.52;0.7;0.78;1"/>')
+    b += [
+        f'<g clip-path="url(#eyeclip)">',
+        f'<rect x="{cx-hw}" y="{cy-ho}" width="{2*hw}" height="{2*ho}" fill="{a}" fill-opacity="0.07"/>',
+        f'<g>{gaze}',
+        f'<circle cx="{cx}" cy="{cy}" r="54" fill="url(#iris)"/>',
+        f'<circle cx="{cx}" cy="{cy}" r="54" fill="none" stroke="{a}" stroke-width="2"/>',
+        f'<g><circle cx="{cx}" cy="{cy}" r="40" fill="none" stroke="{EYE_PUPIL}" stroke-opacity="0.35" '
+        f'stroke-width="1.5" stroke-dasharray="3 5"/>'
+        f'<animateTransform attributeName="transform" type="rotate" from="360 {cx} {cy}" to="0 {cx} {cy}" '
+        f'dur="20s" repeatCount="indefinite"/></g>',
+        f'<circle cx="{cx}" cy="{cy}" r="20" fill="{EYE_PUPIL}">'
+        f'<animate attributeName="r" values="20;20;26;20" keyTimes="0;0.6;0.8;1" dur="5s" repeatCount="indefinite"/></circle>',
+        f'<circle cx="{cx-9}" cy="{cy-10}" r="5" fill="#FFFFFF" fill-opacity="0.85"/>',
+        "</g>",
+        f'<rect x="{cx-hw}" y="{cy-ho}" width="{2*hw}" height="2" fill="{a}" fill-opacity="0.7">'
+        f'<animate attributeName="y" values="{cy-ho};{cy+ho};{cy-ho}" dur="3.5s" repeatCount="indefinite"/></rect>',
+        "</g>",
+        f'<path d="{o}" fill="none" stroke="{a}" stroke-width="2.5" stroke-linejoin="round">{lid_anim}</path>',
+    ]
+    # labels on the brow lines
+    sol = len(S.get("solvers", []))
+    b.append(f'<circle cx="6" cy="{cy-50}" r="4" fill="{a}">'
+             f'<animate attributeName="opacity" values="1;0.15;1" dur="1.4s" repeatCount="indefinite"/></circle>')
+    b.append(text(18, cy - 46, "TRINETRA · WATCHING YOU", 11, a, weight=700, ls=3))
+    b.append(text(0, cy + 58, "it sees everyone who visits.", 12, t["muted"], ls=1))
+    b.append(text(2 * cx, cy - 46, f"{S.get('attempts', 0)} TRIED · {sol} SAW", 11, a, anchor="end", weight=700, ls=3))
+    b.append(text(2 * cx, cy + 58, "only a few see it back.", 12, t["muted"], anchor="end", ls=1))
+    return "".join(b)
+
+
+def frame(t, w, h):
+    """Glowing restricted-access frame with corner brackets, so this panel never reads as ordinary."""
+    a = t["accent"]
+    b = [f'<rect x="1" y="1" width="{w-2}" height="{h-2}" rx="14" fill="{a}" fill-opacity="0.035" '
+         f'stroke="{a}" stroke-opacity="0.55" stroke-width="1.5">'
+         f'<animate attributeName="stroke-opacity" values="0.3;0.8;0.3" dur="4s" repeatCount="indefinite"/></rect>']
+    L, o = 26, 8
+    for x, y, sx, sy in ((o, o, 1, 1), (w - o, o, -1, 1), (o, h - o, 1, -1), (w - o, h - o, -1, -1)):
+        b.append(f'<path d="M{x} {y + sy*L} V{y} H{x + sx*L}" fill="none" stroke="{a}" stroke-width="3" '
+                 f'stroke-linecap="round"/>')
+    return "".join(b)
+
+
 def render(t, S):
     sol = S.get("solvers", [])
-    H = 470
+    P, BAND = 32, 230          # frame padding, height of the eye band
+    W_ = W - 2 * P             # inner width; the brief + leaderboard keep their 470px layout
+    CH = 470
+    H = P + BAND + CH + P
     RX = 660
     b = []
     # ── left: the brief
@@ -187,11 +282,11 @@ def render(t, S):
     b.append(text(20, sy + 74, "→ open an issue titled  ctf: <hash>", 13, t["accent"]))
 
     # ── right: the leaderboard
-    b.append(line(RX - 30, 0, RX - 30, H, t["line"]))
+    b.append(line(RX - 30, 0, RX - 30, CH, t["line"]))
     b.append(text(RX, 22, "THOSE WHO SAW", 11, t["muted"], ls=3))
-    b.append(text(W, 22, f"{len(sol)} SOLVED · {S.get('attempts', 0)} ATTEMPTS", 11,
+    b.append(text(W_, 22, f"{len(sol)} SOLVED · {S.get('attempts', 0)} ATTEMPTS", 11,
                   t["accent"] if sol else t["muted"], anchor="end", ls=2, weight=700))
-    b.append(trishul(t, W - 40, 56, min(len(sol), 3)))
+    b.append(trishul(t, W_ - 40, 56, min(len(sol), 3)))
     if not sol:
         b.append(text(RX, 86, "No one yet.", 26, t["ink"], SANS, 800, ls=-0.5))
         b.append(text(RX, 114, "First blood is still on the table.", 15, t["muted"], SANS))
@@ -206,10 +301,14 @@ def render(t, S):
         b.append("<g>" + "".join(g) + anim("opacity", 0, 1, 0.3 + i * 0.1, 0.4, ease=False) + "</g>")
     if len(sol) > 8:
         b.append(text(RX + 44, 74 + 8 * 48, f"+ {len(sol) - 8} more", 13, t["muted"]))
-    b.append(text(W, H - 8, "VERIFIED BY ACTIONS · HMAC-SAFE · LOGIN-BOUND", 10, t["muted"], anchor="end", ls=1.5))
+    b.append(text(W_, CH - 8, "VERIFIED BY ACTIONS · HMAC-SAFE · LOGIN-BOUND", 10, t["muted"], anchor="end", ls=1.5))
     alt = (f"Capture the flag: open the third eye. A flag is hidden in the Mahadev artwork across three stages — "
            f"recon, crypto, stego. {len(sol)} solved so far.")
-    return svg(W, H, "".join(b), alt)
+    alt = ("The third eye of Mahadev watches every visitor. " + alt)
+    out = (frame(t, W, H)
+           + f'<g transform="translate({P} {P})">{watching_eye(t, W_ / 2, BAND / 2 - 6, S)}</g>'
+           + f'<g transform="translate({P} {P + BAND})">{"".join(b)}</g>')
+    return svg(W, H, out, alt)
 
 
 def render_all(S=None):
