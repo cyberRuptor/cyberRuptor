@@ -6,7 +6,9 @@
       "opened_at": "2026-11-25T13:30:44Z",
       "issue": 3,
       "run_id": "45624302163",
-      "retries": 1
+      "retries": 1,
+      "closed_at": "2026-11-25T13:33:19Z",
+      "healed_by": "retry"
     }
   ]
 }
