@@ -1,4 +1,12 @@
 {
   "since": "2026-11-24T09:15:41Z",
-  "incidents": []
+  "incidents": [
+    {
+      "workflow": "Provenance",
+      "opened_at": "2026-11-25T13:30:44Z",
+      "issue": 3,
+      "run_id": "45624302163",
+      "retries": 1
+    }
+  ]
 }
