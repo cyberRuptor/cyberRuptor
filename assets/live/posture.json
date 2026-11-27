@@ -1,5 +1,5 @@
 {
-  "scanned_at": "2026-11-26T13:08Z",
+  "scanned_at": "2026-11-27T13:06Z",
   "tools": {
     "trivy": "0.76.1",
     "gitleaks": "8.30.1",
