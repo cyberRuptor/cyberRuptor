@@ -1,5 +1,5 @@
 {
-  "scanned_at": "2026-11-27T13:06Z",
+  "scanned_at": "2026-11-28T12:20Z",
   "tools": {
     "trivy": "0.76.1",
     "gitleaks": "8.30.1",
@@ -112,7 +112,7 @@
       },
       "gitleaks": 0,
       "scorecard": {
-        "score": 3.6,
+        "score": 3.7,
         "weakest": "Branch-Protection 0"
       }
     }
